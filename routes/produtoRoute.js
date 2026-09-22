@@ -1,0 +1,53 @@
+import express from "express";
+import { resolve } from "node:path";
+import { criarCatalogoArquivo } from "../catalogo/catalogoArquivo.js";
+
+const caminhoCatalogo =
+  process.env.CATALOGO_ARQUIVO ||
+  resolve(import.meta.dirname, "../data/produtos.json");
+
+const catalogo = criarCatalogoArquivo(caminhoCatalogo);
+
+export const produtosRoutes = express.Router();
+
+produtosRoutes.get("/", async (req, res, next) => {
+  try {
+    const produtos = await catalogo.listar();
+    res.status(200).json({ sucesso: true, dados: produtos });
+  } catch (erro) {
+    next(erro); //encaminha para middleware
+  }
+});
+
+produtosRoutes.post("/", async (req, res) => {
+  try {
+    const { nome, preco, estoque, categoria } = req.body;
+    const produto = await catalogo.criar({ nome, preco, estoque, categoria });
+    res.status(201).json({
+      sucesso: true,
+      dados: produto,
+    });
+  } catch (erro) {
+    res.status(400).json({ sucesso: false, erro: erro.message });
+  }
+});
+
+produtosRoutes.get("/:id", async (req, res, next) => {
+  try {
+    if (!Number.isInteger(id))
+      return res.status(400).json({
+        erro: "ID deve ser inteiro",
+      });
+
+    const produto = await catalogo.buscarPorId(id);
+    res.status(200).json({
+      sucesso: true,
+      dados: produto,
+    });
+  } catch (erro) {
+    if (erro.message.includes("não encontrado")) {
+      return res.status(404).json({ erro: erro.message });
+    }
+    next(erro);
+  }
+});
