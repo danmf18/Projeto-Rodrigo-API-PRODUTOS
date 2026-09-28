@@ -12,7 +12,7 @@ export const produtosRoutes = express.Router();
 
 produtosRoutes.get("/", async (req, res, next) => {
   try {
-    const produtos = await catalogo.listar();
+    const produtos = await catalogo.listar(); 
     res.status(200).json({ sucesso: true, dados: produtos });
   } catch (erro) {
     next(erro); //encaminha para middleware
